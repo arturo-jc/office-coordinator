@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Label, TextInput, Textarea, Button, Datepicker } from 'flowbite-react'
 import { Plus, X } from 'lucide-react'
 
@@ -11,6 +12,7 @@ interface Attendee {
 }
 
 export default function NewInviteForm() {
+  const router = useRouter()
   const [eventTitle, setEventTitle] = useState('')
   const [eventDate, setEventDate] = useState<Date | null>(null)
   const [startTime, setStartTime] = useState('')
@@ -20,6 +22,8 @@ export default function NewInviteForm() {
   const [attendees, setAttendees] = useState<Attendee[]>([])
   const [newAttendeeName, setNewAttendeeName] = useState('')
   const [newAttendeeContact, setNewAttendeeContact] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState('')
 
   const handleAddAttendee = () => {
     if (newAttendeeName.trim() && newAttendeeContact.trim()) {
@@ -40,18 +44,62 @@ export default function NewInviteForm() {
     setAttendees(attendees.filter((attendee) => attendee.id !== id))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: Handle form submission
-    console.log({
-      eventTitle,
-      eventDate,
-      startTime,
-      duration,
-      place,
-      description,
-      attendees,
-    })
+    setError('')
+    setIsSubmitting(true)
+
+    try {
+      // Validate we have attendees with emails
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      const contacts = attendees
+        .filter(attendee => emailRegex.test(attendee.contact))
+        .map(attendee => ({
+          email: attendee.contact,
+          name: attendee.name,
+        }))
+
+      if (contacts.length === 0) {
+        setError('Please add at least one attendee with a valid email address')
+        setIsSubmitting(false)
+        return
+      }
+
+      // Combine date and time into ISO datetime string
+      if (!eventDate || !startTime) {
+        setError('Please provide both date and time')
+        setIsSubmitting(false)
+        return
+      }
+
+      const [hours, minutes] = startTime.split(':')
+      const dateTime = new Date(eventDate)
+      dateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0)
+
+      const response = await fetch('/api/send-invites', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contacts,
+          meetingTitle: eventTitle,
+          meetingDateTime: dateTime.toISOString(),
+          location: place || undefined,
+        }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to send invites')
+      }
+
+      // Navigate to invites page on success
+      router.push('/invites')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred')
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -192,20 +240,29 @@ export default function NewInviteForm() {
           </div>
         </div>
 
+        {/* Error Message */}
+        {error && (
+          <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+            <p className="text-red-600 dark:text-red-400">{error}</p>
+          </div>
+        )}
+
         {/* Submit Button */}
         <div className="flex justify-end gap-4 pt-4">
           <Button
             type="button"
             color="gray"
             onClick={() => window.history.back()}
+            disabled={isSubmitting}
           >
             Cancel
           </Button>
           <Button
             type="submit"
             color="blue"
+            disabled={isSubmitting}
           >
-            Create Invite
+            {isSubmitting ? 'Sending Invites...' : 'Create Invite'}
           </Button>
         </div>
       </div>
