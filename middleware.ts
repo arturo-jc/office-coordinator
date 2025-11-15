@@ -1,10 +1,24 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
+
+const isRootPath = createRouteMatcher(['/']);
 
 const isSignedIn = createRouteMatcher([
   '/invites(.*)',
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
+
+  if (isRootPath(req)) {
+    return auth().then(({ userId }) => {
+      if (userId) {
+        const url = req.nextUrl.clone();
+        url.pathname = 'invites';
+        return NextResponse.redirect(url);
+      }
+    });
+  }
+
   if (isSignedIn(req)) {
     await auth.protect();
   }
