@@ -1,12 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
-import { DatePicker } from '@mui/x-date-pickers/DatePicker'
-import { TimePicker } from '@mui/x-date-pickers/TimePicker'
-import { TextField } from '@mui/material'
-import dayjs, { Dayjs } from 'dayjs'
+import { Label, TextInput, Textarea, Button, Datepicker } from 'flowbite-react'
 import { Plus, X } from 'lucide-react'
 
 interface Attendee {
@@ -17,8 +12,8 @@ interface Attendee {
 
 export default function NewInviteForm() {
   const [eventTitle, setEventTitle] = useState('')
-  const [eventDate, setEventDate] = useState<Dayjs | null>(null)
-  const [startTime, setStartTime] = useState<Dayjs | null>(null)
+  const [eventDate, setEventDate] = useState<Date | null>(null)
+  const [startTime, setStartTime] = useState('')
   const [duration, setDuration] = useState('')
   const [place, setPlace] = useState('')
   const [description, setDescription] = useState('')
@@ -60,172 +55,160 @@ export default function NewInviteForm() {
   }
 
   return (
-    <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <form onSubmit={handleSubmit} className="bg-white dark:bg-zinc-900 rounded-2xl p-8 shadow-sm">
-        <div className="space-y-6">
-          {/* Event Title */}
-          <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-              Event Title
-            </label>
-            <input
-              type="text"
-              value={eventTitle}
-              onChange={(e) => setEventTitle(e.target.value)}
-              className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter event title"
-              required
-            />
-          </div>
+    <form onSubmit={handleSubmit} className="bg-white dark:bg-zinc-900 rounded-2xl p-8 shadow-sm">
+      <div className="space-y-6">
+        {/* Event Title */}
+        <div>
+          <Label htmlFor="eventTitle">Event Title</Label>
+          <TextInput
+            id="eventTitle"
+            type="text"
+            value={eventTitle}
+            onChange={(e) => setEventTitle(e.target.value)}
+            placeholder="Enter event title"
+            required
+          />
+        </div>
 
-          {/* Preferred Window */}
-          <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-              Preferred Window
-            </label>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <DatePicker
-                label="Date"
+        {/* Preferred Window */}
+        <div>
+          <Label>Preferred Window</Label>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+            <div>
+              <Label htmlFor="eventDate" className="mb-2">Date</Label>
+              <Datepicker
+                id="eventDate"
                 value={eventDate}
-                onChange={(newValue) => setEventDate(newValue)}
-                slotProps={{
-                  textField: {
-                    required: true,
-                    fullWidth: true,
-                  },
-                }}
+                onChange={(date) => setEventDate(date)}
+                required
               />
-              <TimePicker
-                label="Start Time"
+            </div>
+            <div>
+              <Label htmlFor="startTime" className="mb-2">Start Time</Label>
+              <TextInput
+                id="startTime"
+                type="time"
                 value={startTime}
-                onChange={(newValue) => setStartTime(newValue)}
-                slotProps={{
-                  textField: {
-                    required: true,
-                    fullWidth: true,
-                  },
-                }}
+                onChange={(e) => setStartTime(e.target.value)}
+                required
               />
-              <TextField
-                label="Duration (minutes)"
+            </div>
+            <div>
+              <Label htmlFor="duration" className="mb-2">Duration (minutes)</Label>
+              <TextInput
+                id="duration"
                 type="number"
                 value={duration}
                 onChange={(e) => setDuration(e.target.value)}
-                fullWidth
+                min={1}
                 required
-                inputProps={{ min: 1 }}
               />
             </div>
-          </div>
-
-          {/* Place */}
-          <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-              Place
-            </label>
-            <input
-              type="text"
-              value={place}
-              onChange={(e) => setPlace(e.target.value)}
-              className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter location"
-              required
-            />
-          </div>
-
-          {/* Event Description */}
-          <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-              Event Description
-            </label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[120px]"
-              placeholder="Describe the event"
-              required
-            />
-          </div>
-
-          {/* Attendees */}
-          <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-              Attendees
-            </label>
-
-            {/* Existing Attendees */}
-            {attendees.length > 0 && (
-              <div className="mb-4 space-y-2">
-                {attendees.map((attendee) => (
-                  <div
-                    key={attendee.id}
-                    className="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg"
-                  >
-                    <div>
-                      <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                        {attendee.name}
-                      </p>
-                      <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                        {attendee.contact}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveAttendee(attendee.id)}
-                      className="p-1 text-red-600 hover:bg-red-50 dark:hover:bg-red-950 rounded"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Add New Attendee */}
-            <div className="flex flex-col sm:flex-row gap-3">
-              <input
-                type="text"
-                value={newAttendeeName}
-                onChange={(e) => setNewAttendeeName(e.target.value)}
-                className="flex-1 px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Name"
-              />
-              <input
-                type="text"
-                value={newAttendeeContact}
-                onChange={(e) => setNewAttendeeContact(e.target.value)}
-                className="flex-1 px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Phone or Email"
-              />
-              <button
-                type="button"
-                onClick={handleAddAttendee}
-                className="flex items-center justify-center gap-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-              >
-                <Plus className="w-5 h-5" />
-                Add
-              </button>
-            </div>
-          </div>
-
-          {/* Submit Button */}
-          <div className="flex justify-end gap-4 pt-4">
-            <button
-              type="button"
-              onClick={() => window.history.back()}
-              className="px-6 py-2 border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-            >
-              Create Invite
-            </button>
           </div>
         </div>
-      </form>
-    </LocalizationProvider>
+
+        {/* Place */}
+        <div>
+          <Label htmlFor="place">Place</Label>
+          <TextInput
+            id="place"
+            type="text"
+            value={place}
+            onChange={(e) => setPlace(e.target.value)}
+            placeholder="Enter location"
+            required
+          />
+        </div>
+
+        {/* Event Description */}
+        <div>
+          <Label htmlFor="description">Event Description</Label>
+          <Textarea
+            id="description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Describe the event"
+            rows={5}
+            required
+          />
+        </div>
+
+        {/* Attendees */}
+        <div>
+          <Label>Attendees</Label>
+
+          {/* Existing Attendees */}
+          {attendees.length > 0 && (
+            <div className="mb-4 space-y-2 mt-2">
+              {attendees.map((attendee) => (
+                <div
+                  key={attendee.id}
+                  className="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg"
+                >
+                  <div>
+                    <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                      {attendee.name}
+                    </p>
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                      {attendee.contact}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveAttendee(attendee.id)}
+                    className="p-1 text-red-600 hover:bg-red-50 dark:hover:bg-red-950 rounded"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Add New Attendee */}
+          <div className="flex flex-col sm:flex-row gap-3 mt-2">
+            <TextInput
+              type="text"
+              value={newAttendeeName}
+              onChange={(e) => setNewAttendeeName(e.target.value)}
+              placeholder="Name"
+              className="flex-1"
+            />
+            <TextInput
+              type="text"
+              value={newAttendeeContact}
+              onChange={(e) => setNewAttendeeContact(e.target.value)}
+              placeholder="Phone or Email"
+              className="flex-1"
+            />
+            <Button
+              type="button"
+              onClick={handleAddAttendee}
+              color="blue"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Add
+            </Button>
+          </div>
+        </div>
+
+        {/* Submit Button */}
+        <div className="flex justify-end gap-4 pt-4">
+          <Button
+            type="button"
+            color="gray"
+            onClick={() => window.history.back()}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            color="blue"
+          >
+            Create Invite
+          </Button>
+        </div>
+      </div>
+    </form>
   )
 }
